@@ -18,7 +18,7 @@ class _ServiceTest(PerfStressTest):
 
     def __init__(self, arguments):
         super().__init__(arguments)
-        connection_string = self.get_from_env("AZURE_STORAGE_CONNECTION_STRING")
+        self.connection_string = self.get_from_env("AZURE_STORAGE_CONNECTION_STRING")
         if self.args.test_proxies:
             self._client_kwargs['_additional_pipeline_policies'] = self._client_kwargs['per_retry_policies']
         self._client_kwargs['max_single_put_size'] = self.args.max_put_size
@@ -32,8 +32,8 @@ class _ServiceTest(PerfStressTest):
         # self._client_kwargs['api_version'] = '2019-02-02'  # Used only for comparison with T1 legacy tests
 
         if not _ServiceTest.service_client or self.args.no_client_share:
-            _ServiceTest.service_client = SyncBlobServiceClient.from_connection_string(conn_str=connection_string, **self._client_kwargs)
-            _ServiceTest.async_service_client = AsyncBlobServiceClient.from_connection_string(conn_str=connection_string, **self._client_kwargs)
+            _ServiceTest.service_client = SyncBlobServiceClient.from_connection_string(conn_str=self.connection_string, **self._client_kwargs)
+            _ServiceTest.async_service_client = AsyncBlobServiceClient.from_connection_string(conn_str=self.connection_string, **self._client_kwargs)
         self.service_client = _ServiceTest.service_client
         self.async_service_client = _ServiceTest.async_service_client
 
@@ -77,9 +77,9 @@ class _ContainerTest(_ServiceTest):
 class _BlobTest(_ContainerTest):
     def __init__(self, arguments):
         super().__init__(arguments)
-        blob_name = "blobtest-" + str(uuid.uuid4())
-        self.blob_client = self.container_client.get_blob_client(blob_name)
-        self.async_blob_client = self.async_container_client.get_blob_client(blob_name)
+        self.blob_name = "blobtest-" + str(uuid.uuid4())
+        self.blob_client = self.container_client.get_blob_client(self.blob_name)
+        self.async_blob_client = self.async_container_client.get_blob_client(self.blob_name)
 
     async def close(self):
         await self.async_blob_client.close()
